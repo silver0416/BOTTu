@@ -17,7 +17,7 @@ DISCORD_TOKEN = secret['DISCORD_TOKEN']
 DISCORD_CHANNEL_ID = secret['DISCORD_CHANNEL_ID']
 
 # ffmpeg path
-FFMPEG_PATH = 'ffmpeg.exe'
+FFMPEG_PATH = 'ffmpeg'
 
 def handle_telegram_sticker(sticker_id,chat_id):
     # Download the sticker
@@ -30,17 +30,17 @@ def handle_telegram_sticker(sticker_id,chat_id):
     file_path = r["result"]["file_path"]
     r = requests.get('https://api.telegram.org/file/bot{}/{}'.format(BOT_TOKEN, file_path), stream=True)
 
-    with open('sticker.webp', 'wb') as f:
-        f.write(r.content)
+    with open('./media/sticker.webp', 'wb') as f:
+        f.write(r.content) 
 
     # Convert the sticker to gif
-    os.system('{} -i sticker.webp sticker.gif -y'.format(FFMPEG_PATH))
+    os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG_PATH))
 
     # Send the gif to Discord
     intents = discord.Intents.all()
     intents.members = True
     client = discord.Client(intents=intents)
-    sticker_file = discord.File('sticker.gif')
+    sticker_file = discord.File('./media/sticker.gif')
 
     @client.event
     async def on_ready():
