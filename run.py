@@ -2,10 +2,6 @@ import os
 import subprocess
 import sys
 
-# Check the Python version
-result = subprocess.run(['python', '--version'], stdout=subprocess.PIPE)
-python_version = result.stdout.decode().strip()
-print('Python version:', python_version)
 
 python_path = sys.executable
 print('Python path:', python_path)
