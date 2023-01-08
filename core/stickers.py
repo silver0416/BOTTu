@@ -3,12 +3,14 @@ import json
 import requests
 import launch
 
-# ffmpeg path
-FFMPEG_PATH = 'ffmpeg.exe'
-
 
 class stickers():
     def handle_telegram_sticker(sticker_id,chat_id,bot,BOT_TOKEN,DISCORD_TOKEN,DISCORD_CHANNEL_ID):
+        def FFMPEG():
+            if os.name == 'nt':
+                return True
+            else:
+                return False
         # Download the sticker
         r = requests.get('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id), stream=True)
         if r.status_code != 200:
@@ -23,7 +25,7 @@ class stickers():
             f.write(r.content) 
 
         # Convert the sticker to gif
-        os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG_PATH))
+        os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG() and 'ffmpeg' or 'ffmpeg.exe'))
 
         # Send the sticker to Discord
         launch.launch.launch_discord_bot(bot,chat_id,DISCORD_TOKEN,DISCORD_CHANNEL_ID)
