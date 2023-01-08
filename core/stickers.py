@@ -23,10 +23,11 @@ class stickers():
 
         if not os.path.exists('./media/sticker.webp'):
             open('./media/sticker.webp', 'a').close()
-
         with open('./media/sticker.webp', 'wb') as f:
             f.write(r.content) 
 
+        if not os.path.exists('./media/sticker.gif'):
+            open('./media/sticker.gif', 'a').close()
         # Convert the sticker to gif
         os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG() and 'ffmpeg' or 'ffmpeg.exe'))
 
