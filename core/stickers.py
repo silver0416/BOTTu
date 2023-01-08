@@ -21,6 +21,9 @@ class stickers():
         file_path = r["result"]["file_path"]
         r = requests.get('https://api.telegram.org/file/bot{}/{}'.format(BOT_TOKEN, file_path), stream=True)
 
+        if not os.path.exists('./media/sticker.webp'):
+            open('./media/sticker.webp', 'a').close()
+
         with open('./media/sticker.webp', 'wb') as f:
             f.write(r.content) 
 
