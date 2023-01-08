@@ -29,7 +29,7 @@ class stickers():
         if not os.path.exists('./media/sticker.gif'):
             open('./media/sticker.gif', 'a').close()
         # Convert the sticker to gif
-        os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG() and 'ffmpeg' or 'ffmpeg.exe'))
+        os.system('{} -i ./media/sticker.webp ./media/sticker.gif -y'.format(FFMPEG() and 'ffmpeg.exe' or 'ffmpeg'))
 
         # Send the sticker to Discord
         launch.launch.launch_discord_bot(bot,chat_id,DISCORD_TOKEN,DISCORD_CHANNEL_ID)
