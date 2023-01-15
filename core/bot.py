@@ -1,9 +1,5 @@
-import json
-import os
-import requests
 import telepot
 from telepot.loop import MessageLoop
-import discord
 import yaml
 import message
 

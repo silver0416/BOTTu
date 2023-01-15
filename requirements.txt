@@ -1,3 +1,5 @@
 discord
 telepot
 PyYAML
+pyrlottie
+Pillow

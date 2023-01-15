@@ -1,16 +1,13 @@
-import asyncio
 import discord
-import yaml
-
 
 
 class launch():
-    def launch_discord_bot(bot,chat_id,DISCORD_TOKEN,DISCORD_CHANNEL_ID):
+    def launch_discord_bot(bot,chat_id,DISCORD_TOKEN,DISCORD_CHANNEL_ID,output_file_extension):
         bot.sendChatAction(chat_id, 'upload_photo')
         intents = discord.Intents.all()
         intents.members = True
         client = discord.Client(intents=intents)
-        sticker_file = discord.File('./media/sticker.gif')
+        sticker_file = discord.File(f'./media/sticker.{output_file_extension}')
 
         @client.event
         async def on_ready():
