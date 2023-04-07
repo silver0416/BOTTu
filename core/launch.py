@@ -1,4 +1,5 @@
 import discord
+from Log import log
 
 
 class launch():
@@ -13,10 +14,13 @@ class launch():
         async def on_ready():
             try:
                 channel = client.get_channel(DISCORD_CHANNEL_ID)
+                log().info(f"Sending sticker to Discord channel: {channel}")
                 await channel.typing()
                 await channel.send(file=sticker_file)
+                log().info("Sticker sent to Discord.")
                 await client.close()
             except Exception as e:
+                log().log("Error: Failed to send sticker to Discord. Please check the channel ID.")
                 bot.sendMessage(chat_id, 'Error: Failed to send sticker to Discord. Please check the channel ID.')
                 await client.close()
                 

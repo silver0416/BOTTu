@@ -6,53 +6,44 @@ import pyrlottie
 from PIL import Image
 import webp
 import asyncio
+from PIL import Image
+from Log import log
 
 
 
 class stickers():
     def handle_telegram_sticker(sticker_id,chat_id,bot,BOT_TOKEN,DISCORD_TOKEN,DISCORD_CHANNEL_ID):
-        def FFMPEG():
+        def OS():
             if os.name == 'nt':
                 return True
             else:
                 return False
 
-        def imageMatting(path,background_color):
-            image = Image.open(path)
-            #get gif total frame
-            total_frames =  image.n_frames
-            duration = image.info['duration']
-            print(duration)
-            try:
-                flag = 0
-                while True:
-                    if not os.path.exists("./media/pics/"):
-                        os.mkdir("./media/pics/")
-                    image.seek(flag) 
-                    open("./media/pics/{}.png".format(flag),'a').close()
-                    image.save("./media/pics/{}.png".format(flag))
-                    pic = Image.open("./media/pics/{}.png".format(flag))
-                    pic = pic.convert("RGBA")
-                    color = pic.getpixel((0,0))
-                    for i in range(pic.size[0]):
-                        for j in range(pic.size[1]):
-                            dot = (i,j)
-                            rgba = pic.getpixel(dot)
-                            if rgba == color:
-                                rgba = rgba[:-1] + (0,)
-                                pic.putpixel(dot, rgba)
-                    pic.save("./media/pics/{}.png".format(flag))
-                    flag +=1
-                    print(flag)
-            except BaseException as e:
-                print(e)
-            photo_list = []
-            pic_list = os.listdir("./media/pics/")
-            pic_list.sort(key=lambda x:int(x[:-4]))
-            for k in pic_list:
-                pic_p = Image.open("./media/pics/{}".format(k))
-                photo_list.append(pic_p)
-            photo_list[0].save("./media/sticker.gif", save_all=True, append_images=photo_list[1:],duration=duration,transparency=0,loop=0,disposal=3)
+        def imageMatting(path):
+            msg_id = bot.sendMessage(chat_id, 'start imageMatting, please wait...')['message_id']
+            log().info('imageMatting')
+            gif = Image.open(path)
+            total_frames = gif.n_frames
+            os.system('{} -i {} ./media/pics/frame%04d.png -y'.format(OS() and 'ffmpeg.exe' or 'ffmpeg',path))
+
+            # imageMatting  for each frame
+            for i in os.listdir("./media/pics/"):
+                if i.endswith(".png"):
+                    img = Image.open("./media/pics/{}".format(i))
+                    img = img.convert("RGBA")
+                    datas = img.getdata()
+                    newData = []
+                    for item in datas:
+                        if item[0] == 1 and item[1] == 1 and item[2] == 1:
+                            newData.append((0, 0, 0, 0))
+                        else:
+                            newData.append(item)
+                    img.putdata(newData)
+                    img.save("./media/pics/{}".format(i), "PNG")
+                    bot.editMessageText((chat_id,msg_id), 'imageMatting: {}/{}, please wait...'.format(i.split('.')[0].split('frame')[-1],total_frames))
+            bot.editMessageText((chat_id,msg_id), 'imageMatting: done')
+            
+            os.system('{} -o ./media/sticker.gif ./media/pics/frame*.png'.format(OS() and 'gifski.exe' or 'gifski'))
             for i in os.listdir("./media/pics/"):
                 os.remove("./media/pics/{}".format(i))
 
@@ -60,8 +51,8 @@ class stickers():
         # Download the sticker
         r = requests.get('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id), stream=True)
         if r.status_code != 200:
-            print(f'Error: Failed to download sticker:{r.status_code}')
-            print('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id))
+            log().info(f'Error: Failed to download sticker:{r.status_code}')
+            log().info('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id))
             return
         r = json.loads(r.text)
         file_path = r["result"]["file_path"]
@@ -77,7 +68,7 @@ class stickers():
             f.write(r.content)
         
         if input_file_extension == 'webp':
-            print('webp')
+            log().info('Converting webp to png')
             output_file_extension = 'png'
             if not os.path.exists('./media/sticker.png'):
                 open('./media/sticker.png', 'a').close()
@@ -91,6 +82,7 @@ class stickers():
 
         
         elif input_file_extension == 'tgs':
+            log().info('Converting tgs to gif')
             output_file_extension = 'gif'
             if not os.path.exists('./media/sticker.gif'):
                 open('./media/sticker.gif', 'a').close()
@@ -99,14 +91,21 @@ class stickers():
             async def convert():
                 await pyrlottie.convSingleLottie(tgs,["./media/sticker.gif"],None,"010101")
             asyncio.run(convert())
-            imageMatting("./media/sticker.gif","010101")
+            imageMatting("./media/sticker.gif")
         
         else :
+            log().info('Converting {} to gif'.format(input_file_extension))
             output_file_extension = 'gif'
             if not os.path.exists('./media/sticker.gif'):
                 open('./media/sticker.gif', 'a').close()
             # Convert the sticker to gif
-            os.system('{} -i ./media/sticker.{} ./media/sticker.{} -y'.format(FFMPEG() and 'ffmpeg.exe' or 'ffmpeg',input_file_extension,output_file_extension))
+            os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(OS() and 'ffmpeg.exe' or 'ffmpeg',input_file_extension))
+            os.system('{} -o ./media/sticker.{} ./media/pics/frame*.png'.format(OS() and 'gifski.exe' or 'gifski',output_file_extension))
+            # remove all the png files in the folder
+            for i in os.listdir("./media/pics/"):
+                if i.endswith(".png"):
+                    os.remove("./media/pics/{}".format(i))
+
 
 
         # Send the sticker to Discord

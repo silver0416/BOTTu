@@ -3,3 +3,4 @@ telepot
 PyYAML
 pyrlottie
 Pillow
+coloredlogs

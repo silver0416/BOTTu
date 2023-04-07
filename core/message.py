@@ -1,6 +1,8 @@
 import telepot
 import yaml
 import stickers
+from Log import log
+
 
 with open('secret.yml', 'r', encoding='utf8') as f:
     secret = yaml.load(f, Loader=yaml.FullLoader)
@@ -24,6 +26,7 @@ class message():
 
         
         if content_type == 'sticker':
+            log().info(f"Sticker received from Telegram user: {msg['from']['first_name']}")
             bot.sendChatAction(chat_id, 'upload_photo')
             stickers.stickers.handle_telegram_sticker(msg['sticker']['file_id'],chat_id,bot,BOT_TOKEN,DISCORD_TOKEN,DISCORD_CHANNEL_ID)
         elif content_type == 'text':
