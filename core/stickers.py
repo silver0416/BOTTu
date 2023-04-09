@@ -43,6 +43,7 @@ class stickers():
                       and 'ffmpeg.exe' or 'ffmpeg', path))
             
             # imageMatting  for each frame
+            n = 0
             for i in os.listdir("./media/pics/"):
                 if i.endswith(".png"):
                     img = Image.open("./media/pics/{}".format(i))
@@ -57,7 +58,8 @@ class stickers():
                     img.putdata(newData)
                     img.save("./media/pics/{}".format(i), "PNG")
                     bot.editMessageText((chat_id, msg_id), 'imageMatting: {}%, please wait...'.format(
-                        int(i.split('.')[0].split('frame')[-1]) / total_frames * 100))
+                        round(n / total_frames * 100, 2)))
+                    n += 1
             bot.editMessageText((chat_id, msg_id), 'imageMatting: done')
 
             os.system('{} --fps {} -o ./media/sticker.gif ./media/pics/frame*.png'.format(
