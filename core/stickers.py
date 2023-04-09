@@ -13,6 +13,12 @@ import cv2
 
 class stickers():
     def handle_telegram_sticker(sticker_id, chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID):
+        # check if /media and /media/pics exist
+        if not os.path.exists('./media'):
+            os.mkdir('./media')
+        if not os.path.exists('./media/pics'):
+            os.mkdir('./media/pics')
+        
         def OS():
             if os.name == 'nt':
                 return True
