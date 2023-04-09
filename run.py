@@ -16,7 +16,7 @@ if os.name == 'posix':
         print('FFMPEG is not installed, please install it first!')
         exit()
     # check if gifski is installed
-    if not os.path.isfile('/usr/bin/gifski') or os.path.isfile('/snap/bin/gifski'):
+    if not (os.path.isfile('/usr/bin/gifski') and os.path.isfile('/snap/bin/gifski')):
         print('gifski is not installed, please install it first!')
         exit()
 
