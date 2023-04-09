@@ -41,7 +41,7 @@ class stickers():
 
             os.system('{} -i {} ./media/pics/frame%04d.png -y'.format(OS()
                       and 'ffmpeg.exe' or 'ffmpeg', path))
-
+            
             # imageMatting  for each frame
             for i in os.listdir("./media/pics/"):
                 if i.endswith(".png"):
@@ -56,8 +56,8 @@ class stickers():
                             newData.append(item)
                     img.putdata(newData)
                     img.save("./media/pics/{}".format(i), "PNG")
-                    bot.editMessageText((chat_id, msg_id), 'imageMatting: {}/{}, please wait...'.format(
-                        i.split('.')[0].split('frame')[-1], total_frames))
+                    bot.editMessageText((chat_id, msg_id), 'imageMatting: {}%, please wait...'.format(
+                        int(i.split('.')[0].split('frame')[-1]) / total_frames * 100))
             bot.editMessageText((chat_id, msg_id), 'imageMatting: done')
 
             os.system('{} --fps {} -o ./media/sticker.gif ./media/pics/frame*.png'.format(
@@ -106,7 +106,7 @@ class stickers():
                 open('./media/sticker.gif', 'a').close()
             # Convert the sticker to gif
             tgs = pyrlottie.LottieFile("./media/sticker.tgs")
-
+            # if pyrlottie show permission denied in linux, run this command in terminal: sudo chmod +x /PYTHON_PATH/site-packages/pyrlottie/linux_x86_64/lottie2gif
             async def convert():
                 await pyrlottie.convSingleLottie(tgs, ["./media/sticker.gif"], None, "010101")
             asyncio.run(convert())
