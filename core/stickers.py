@@ -2,17 +2,17 @@ import os
 import json
 import requests
 import launch
-import pyrlottie 
+import pyrlottie
 from PIL import Image
 import webp
 import asyncio
 from PIL import Image
 from Log import log
-
+import cv2
 
 
 class stickers():
-    def handle_telegram_sticker(sticker_id,chat_id,bot,BOT_TOKEN,DISCORD_TOKEN,DISCORD_CHANNEL_ID):
+    def handle_telegram_sticker(sticker_id, chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID):
         def OS():
             if os.name == 'nt':
                 return True
@@ -20,11 +20,21 @@ class stickers():
                 return False
 
         def imageMatting(path):
-            msg_id = bot.sendMessage(chat_id, 'start imageMatting, please wait...')['message_id']
+            msg_id = bot.sendMessage(chat_id, 'imageMatting: initializing, please wait...')[
+                'message_id']
             log().info('imageMatting')
             gif = Image.open(path)
             total_frames = gif.n_frames
-            os.system('{} -i {} ./media/pics/frame%04d.png -y'.format(OS() and 'ffmpeg.exe' or 'ffmpeg',path))
+            fps = int(1000 / gif.info['duration'])
+            log().info('fps: {}'.format(fps))
+
+            # remove old files
+            for i in os.listdir("./media/pics/"):
+                if i.endswith(".png"):
+                    os.remove("./media/pics/{}".format(i))
+
+            os.system('{} -i {} ./media/pics/frame%04d.png -y'.format(OS()
+                      and 'ffmpeg.exe' or 'ffmpeg', path))
 
             # imageMatting  for each frame
             for i in os.listdir("./media/pics/"):
@@ -40,16 +50,18 @@ class stickers():
                             newData.append(item)
                     img.putdata(newData)
                     img.save("./media/pics/{}".format(i), "PNG")
-                    bot.editMessageText((chat_id,msg_id), 'imageMatting: {}/{}, please wait...'.format(i.split('.')[0].split('frame')[-1],total_frames))
-            bot.editMessageText((chat_id,msg_id), 'imageMatting: done')
-            
-            os.system('{} -o ./media/sticker.gif ./media/pics/frame*.png'.format(OS() and 'gifski.exe' or 'gifski'))
+                    bot.editMessageText((chat_id, msg_id), 'imageMatting: {}/{}, please wait...'.format(
+                        i.split('.')[0].split('frame')[-1], total_frames))
+            bot.editMessageText((chat_id, msg_id), 'imageMatting: done')
+
+            os.system('{} --fps {} -o ./media/sticker.gif ./media/pics/frame*.png'.format(
+                OS() and 'gifski.exe' or 'gifski', fps))
             for i in os.listdir("./media/pics/"):
                 os.remove("./media/pics/{}".format(i))
 
-
         # Download the sticker
-        r = requests.get('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id), stream=True)
+        r = requests.get(
+            'https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id), stream=True)
         if r.status_code != 200:
             log().info(f'Error: Failed to download sticker:{r.status_code}')
             log().info('https://api.telegram.org/bot{}/getFile?file_id={}'.format(BOT_TOKEN, sticker_id))
@@ -58,7 +70,8 @@ class stickers():
         file_path = r["result"]["file_path"]
         input_file_extension = file_path.split('.')[-1]
 
-        r = requests.get('https://api.telegram.org/file/bot{}/{}'.format(BOT_TOKEN, file_path), stream=True)
+        r = requests.get(
+            'https://api.telegram.org/file/bot{}/{}'.format(BOT_TOKEN, file_path), stream=True)
 
         output_file_extension = input_file_extension
 
@@ -66,7 +79,7 @@ class stickers():
             open(f'./media/sticker.{input_file_extension}', 'a').close()
         with open(f'./media/sticker.{input_file_extension}', 'wb') as f:
             f.write(r.content)
-        
+
         if input_file_extension == 'webp':
             log().info('Converting webp to png')
             output_file_extension = 'png'
@@ -77,10 +90,9 @@ class stickers():
             n_width = 200
             ratio = float(n_width)/image.size[0]
             n_height = int(image.size[1]*ratio)
-            r_image = image.resize((n_width,n_height), Image.ANTIALIAS)
+            r_image = image.resize((n_width, n_height), Image.ANTIALIAS)
             r_image.save("./media/sticker.png")
 
-        
         elif input_file_extension == 'tgs':
             log().info('Converting tgs to gif')
             output_file_extension = 'gif'
@@ -88,25 +100,31 @@ class stickers():
                 open('./media/sticker.gif', 'a').close()
             # Convert the sticker to gif
             tgs = pyrlottie.LottieFile("./media/sticker.tgs")
+
             async def convert():
-                await pyrlottie.convSingleLottie(tgs,["./media/sticker.gif"],None,"010101")
+                await pyrlottie.convSingleLottie(tgs, ["./media/sticker.gif"], None, "010101")
             asyncio.run(convert())
             imageMatting("./media/sticker.gif")
-        
-        else :
+
+        else:
             log().info('Converting {} to gif'.format(input_file_extension))
             output_file_extension = 'gif'
             if not os.path.exists('./media/sticker.gif'):
                 open('./media/sticker.gif', 'a').close()
+            # Get the fps of the sticker
+            if input_file_extension == 'webm':
+                video = cv2.VideoCapture("./media/sticker.webm")
+                fps = video.get(cv2.CAP_PROP_FPS)
             # Convert the sticker to gif
-            os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(OS() and 'ffmpeg.exe' or 'ffmpeg',input_file_extension))
-            os.system('{} -o ./media/sticker.{} ./media/pics/frame*.png'.format(OS() and 'gifski.exe' or 'gifski',output_file_extension))
+            os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(
+                OS() and 'ffmpeg.exe' or 'ffmpeg', input_file_extension))
+            os.system('{} --fps {} -o ./media/sticker.{} ./media/pics/frame*.png'.format(
+                OS() and 'gifski.exe' or 'gifski', fps, output_file_extension))
             # remove all the png files in the folder
             for i in os.listdir("./media/pics/"):
                 if i.endswith(".png"):
                     os.remove("./media/pics/{}".format(i))
 
-
-
         # Send the sticker to Discord
-        launch.launch.launch_discord_bot(bot,chat_id,DISCORD_TOKEN,DISCORD_CHANNEL_ID,output_file_extension)
+        launch.launch.launch_discord_bot(
+            bot, chat_id, DISCORD_TOKEN, DISCORD_CHANNEL_ID, output_file_extension)

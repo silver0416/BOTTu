@@ -4,3 +4,5 @@ PyYAML
 pyrlottie
 Pillow
 coloredlogs
+opencv-python
+webp
