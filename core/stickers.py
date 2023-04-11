@@ -119,9 +119,6 @@ class stickers():
                 n_width = Image.open("./media/sticker.gif").size[0]
             else:
                 n_width = int(OUPUT_SIZE)
-                # image = Image.open("./media/sticker.gif")
-                # ratio = float(n_width)/image.size[0]
-                # n_height = int(image.size[1]*ratio)
             imageMatting("./media/sticker.gif", n_width)
 
         else:
@@ -130,19 +127,27 @@ class stickers():
             if not os.path.exists('./media/sticker.gif'):
                 open('./media/sticker.gif', 'a').close()
             # Get the fps of the sticker
-            if input_file_extension == 'webm':
-                video = cv2.VideoCapture("./media/sticker.webm")
-                fps = video.get(cv2.CAP_PROP_FPS)
+            video = cv2.VideoCapture(f"./media/sticker.{input_file_extension}")
+            fps = video.get(cv2.CAP_PROP_FPS)
+
             # width
             if OUPUT_SIZE == "original":
                 n_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
             else:
                 n_width = int(OUPUT_SIZE)
             # Convert the sticker to gif
-            os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(
-                OS() and 'ffmpeg.exe' or 'ffmpeg', input_file_extension))
+
+            if fps > 50:  # gif fps limit is 50
+                fps = 50
+                os.system('{} -i ./media/sticker.{} -r 50 ./media/pics/frame%04d.png -y'.format(
+                    OS() and 'ffmpeg.exe' or 'ffmpeg', input_file_extension))
+            else:
+                os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(
+                    OS() and 'ffmpeg.exe' or 'ffmpeg', input_file_extension))
+
             os.system('{} --fps {} -W {} -o ./media/sticker.{} ./media/pics/frame*.png'.format(
                 OS() and 'gifski.exe' or 'gifski', fps, n_width, output_file_extension))
+
             # remove all the png files in the folder
             for i in os.listdir("./media/pics/"):
                 if i.endswith(".png"):
