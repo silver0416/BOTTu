@@ -12,7 +12,8 @@ with open('secret.yml', 'r', encoding='utf8') as f:
 BOT_TOKEN = secret['TELEGRAM_TOKEN']
 
 bot = telepot.Bot(BOT_TOKEN)
-MessageLoop(bot,message.message.handle_telegram_message).run_as_thread()
+MessageLoop(bot, {'chat': message.message.handle_telegram_message,
+            'callback_query': message.message.on_callback_query}).run_as_thread()
 log().info('Telegram bot started.')
 
 # Run the bot indefinitely

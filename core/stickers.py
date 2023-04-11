@@ -12,20 +12,20 @@ import cv2
 
 
 class stickers():
-    def handle_telegram_sticker(sticker_id, chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID):
+    def handle_telegram_sticker(sticker_id, chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUPUT_SIZE):
         # check if /media and /media/pics exist
         if not os.path.exists('./media'):
             os.mkdir('./media')
         if not os.path.exists('./media/pics'):
             os.mkdir('./media/pics')
-        
+
         def OS():
             if os.name == 'nt':
                 return True
             else:
                 return False
 
-        def imageMatting(path):
+        def imageMatting(path, width):
             msg_id = bot.sendMessage(chat_id, 'imageMatting: initializing, please wait...')[
                 'message_id']
             log().info('imageMatting')
@@ -41,7 +41,7 @@ class stickers():
 
             os.system('{} -i {} ./media/pics/frame%04d.png -y'.format(OS()
                       and 'ffmpeg.exe' or 'ffmpeg', path))
-            
+
             # imageMatting  for each frame
             n = 0
             for i in os.listdir("./media/pics/"):
@@ -58,12 +58,12 @@ class stickers():
                     img.putdata(newData)
                     img.save("./media/pics/{}".format(i), "PNG")
                     bot.editMessageText((chat_id, msg_id), 'imageMatting: {}%, please wait...'.format(
-                        round(n / total_frames * 100, 2)))
+                        round(n / total_frames * 100)))
                     n += 1
             bot.editMessageText((chat_id, msg_id), 'imageMatting: done')
 
-            os.system('{} --fps {} -o ./media/sticker.gif ./media/pics/frame*.png'.format(
-                OS() and 'gifski.exe' or 'gifski', fps))
+            os.system('{} --fps {} -W {} -o ./media/sticker.gif ./media/pics/frame*.png'.format(
+                OS() and 'gifski.exe' or 'gifski', fps, width))
             for i in os.listdir("./media/pics/"):
                 os.remove("./media/pics/{}".format(i))
 
@@ -94,12 +94,14 @@ class stickers():
             if not os.path.exists('./media/sticker.png'):
                 open('./media/sticker.png', 'a').close()
             image = webp.load_image("./media/sticker.webp").convert("RGBA")
-            width, height = image.size
-            n_width = 200
-            ratio = float(n_width)/image.size[0]
-            n_height = int(image.size[1]*ratio)
-            r_image = image.resize((n_width, n_height), Image.ANTIALIAS)
-            r_image.save("./media/sticker.png")
+            if OUPUT_SIZE == "original":
+                image.save("./media/sticker.png")
+            else:
+                n_width = int(OUPUT_SIZE)
+                ratio = float(n_width)/image.size[0]
+                n_height = int(image.size[1]*ratio)
+                r_image = image.resize((n_width, n_height), Image.ANTIALIAS)
+                r_image.save("./media/sticker.png")
 
         elif input_file_extension == 'tgs':
             log().info('Converting tgs to gif')
@@ -109,10 +111,18 @@ class stickers():
             # Convert the sticker to gif
             tgs = pyrlottie.LottieFile("./media/sticker.tgs")
             # if pyrlottie show permission denied in linux, run this command in terminal: sudo chmod +x /PYTHON_PATH/site-packages/pyrlottie/linux_x86_64/lottie2gif
+
             async def convert():
                 await pyrlottie.convSingleLottie(tgs, ["./media/sticker.gif"], None, "010101")
             asyncio.run(convert())
-            imageMatting("./media/sticker.gif")
+            if OUPUT_SIZE == "original":
+                n_width = Image.open("./media/sticker.gif").size[0]
+            else:
+                n_width = int(OUPUT_SIZE)
+                # image = Image.open("./media/sticker.gif")
+                # ratio = float(n_width)/image.size[0]
+                # n_height = int(image.size[1]*ratio)
+            imageMatting("./media/sticker.gif", n_width)
 
         else:
             log().info('Converting {} to gif'.format(input_file_extension))
@@ -123,11 +133,16 @@ class stickers():
             if input_file_extension == 'webm':
                 video = cv2.VideoCapture("./media/sticker.webm")
                 fps = video.get(cv2.CAP_PROP_FPS)
+            # width
+            if OUPUT_SIZE == "original":
+                n_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+            else:
+                n_width = int(OUPUT_SIZE)
             # Convert the sticker to gif
             os.system('{} -i ./media/sticker.{} ./media/pics/frame%04d.png -y'.format(
                 OS() and 'ffmpeg.exe' or 'ffmpeg', input_file_extension))
-            os.system('{} --fps {} -o ./media/sticker.{} ./media/pics/frame*.png'.format(
-                OS() and 'gifski.exe' or 'gifski', fps, output_file_extension))
+            os.system('{} --fps {} -W {} -o ./media/sticker.{} ./media/pics/frame*.png'.format(
+                OS() and 'gifski.exe' or 'gifski', fps, n_width, output_file_extension))
             # remove all the png files in the folder
             for i in os.listdir("./media/pics/"):
                 if i.endswith(".png"):
