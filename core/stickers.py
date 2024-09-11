@@ -100,7 +100,7 @@ class stickers():
                 n_width = int(OUPUT_SIZE)
                 ratio = float(n_width)/image.size[0]
                 n_height = int(image.size[1]*ratio)
-                r_image = image.resize((n_width, n_height), Image.ANTIALIAS)
+                r_image = image.resize((n_width, n_height), Image.LANCZOS)
                 r_image.save("./media/sticker.png")
 
         elif input_file_extension == 'tgs':
