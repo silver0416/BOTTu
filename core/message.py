@@ -2,6 +2,7 @@ import telepot
 import yaml
 import stickers
 from Log import log
+import gif
 
 
 with open('secret.yml', 'r', encoding='utf8') as f:
@@ -15,7 +16,7 @@ BOT_TOKEN = secret['TELEGRAM_TOKEN']
 DISCORD_TOKEN = secret['DISCORD_TOKEN']
 DISCORD_CHANNEL_ID = secret['DISCORD_CHANNEL_ID']
 
-OUTPUT_SIZE, DEFAULT_OUTPUT_SIZE = config['OUTPUT_SIZE'] , config['OUTPUT_SIZE']
+OUTPUT_SIZE, DEFAULT_OUTPUT_SIZE = config['OUTPUT_SIZE'], config['OUTPUT_SIZE']
 
 bot = telepot.Bot(BOT_TOKEN)
 
@@ -59,6 +60,12 @@ class message():
             bot.sendChatAction(chat_id, 'upload_photo')
             stickers.stickers.handle_telegram_sticker(
                 msg['sticker']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
+        elif content_type == 'gif':
+            log().info(
+                f"Gif received from Telegram user: {msg['from']['first_name']}")
+            bot.sendChatAction(chat_id, 'upload_photo')
+            gif.gif.handle_telegram_gif(
+                msg['sticker']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
         elif content_type == 'text':
             bot.sendChatAction(chat_id, 'typing')
             command = msg['text']
@@ -68,8 +75,8 @@ class message():
             # Use a switch-case statement to handle different commands
             case = {
                 '/start': lambda: bot.sendMessage(chat_id, 'Hello! I am a sticker bot. Send me a sticker and I will send it to Discord.\n' +
-                                                  'send /set to set the Discord channel id to send the sticker to.\n' +
-                                                  'send /nowID to get the current Discord channel id.'),
+                                                    'send /set to set the Discord channel id to send the sticker to.\n' +
+                                                    'send /nowID to get the current Discord channel id.'),
                 '/set': lambda: set_discord_channel_id(bot, chat_id, msg),
                 '/nowID': lambda: bot.sendMessage(chat_id, 'Current Discord channel ID is {}'.format(DISCORD_CHANNEL_ID)),
                 '/size': lambda: set_output_size(bot, chat_id, msg),
