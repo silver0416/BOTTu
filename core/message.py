@@ -60,7 +60,7 @@ class message():
             bot.sendChatAction(chat_id, 'upload_photo')
             stickers.stickers.handle_telegram_sticker(
                 msg['sticker']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
-        elif content_type == 'gif':
+        elif content_type == 'animation':
             log().info(
                 f"Gif received from Telegram user: {msg['from']['first_name']}")
             bot.sendChatAction(chat_id, 'upload_photo')
