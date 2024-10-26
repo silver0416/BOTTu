@@ -53,19 +53,22 @@ class message():
             DISCORD_CHANNEL_ID = int(msg['text'].split()[1])
             bot.sendMessage(
                 chat_id, 'Discord channel ID set to {}'.format(DISCORD_CHANNEL_ID))
-
+        log().info('content_type: {}'.format(content_type))
         if content_type == 'sticker':
             log().info(
                 f"Sticker received from Telegram user: {msg['from']['first_name']}")
             bot.sendChatAction(chat_id, 'upload_photo')
             stickers.stickers.handle_telegram_sticker(
                 msg['sticker']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
-        elif content_type == 'animation':
-            log().info(
-                f"Gif received from Telegram user: {msg['from']['first_name']}")
-            bot.sendChatAction(chat_id, 'upload_photo')
-            gif.gif.handle_telegram_gif(
-                msg['sticker']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
+        elif content_type == 'document':
+            if msg['document']['mime_type'] == 'video/mp4':
+                log().info(
+                    f"Gif received from Telegram user: {msg['from']['first_name']}")
+                bot.sendChatAction(chat_id, 'upload_photo')
+                gif.gif.handle_telegram_gif(
+                    msg['document']['file_id'], chat_id, bot, BOT_TOKEN, DISCORD_TOKEN, DISCORD_CHANNEL_ID, OUTPUT_SIZE)
+            else:
+                bot.sendMessage(chat_id, 'I only accept gif files.')
         elif content_type == 'text':
             bot.sendChatAction(chat_id, 'typing')
             command = msg['text']

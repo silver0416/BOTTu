@@ -18,6 +18,10 @@ class launch():
                 await channel.typing()
                 await channel.send(file=sticker_file)
                 log().info("Sticker sent to Discord.")
+                # 回傳discord上的檔案連結到tg
+                attachment = await channel.fetch_message(channel.last_message_id)
+                for attachment in attachment.attachments:
+                    bot.sendMessage(chat_id, attachment.url)
                 await client.close()
             except Exception as e:
                 log().log("Error: Failed to send sticker to Discord. Please check the channel ID.")
